@@ -45,6 +45,7 @@ class LanguagePack::Rails4 < LanguagePack::Rails3
   private
 
   def install_plugins
+    run_custom_build_steps :before_install_plugins
     instrument "rails4.install_plugins" do
       return false if bundler.has_gem?('rails_12factor')
       plugins = ["rails_serve_static_assets", "rails_stdout_logging"].reject { |plugin| bundler.has_gem?(plugin) }

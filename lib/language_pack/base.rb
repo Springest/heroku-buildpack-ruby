@@ -75,6 +75,7 @@ class LanguagePack::Base
   # this is called to build the slug
   def compile
     write_release_yaml
+    run_custom_build_steps :before_compile
     instrument 'base.compile' do
       if @warnings.any?
         topic "WARNINGS:"
@@ -85,6 +86,7 @@ class LanguagePack::Base
         puts @deprecations.join("\n")
       end
     end
+    run_custom_build_steps :after_compile
   end
 
   def write_release_yaml
@@ -120,10 +122,64 @@ class LanguagePack::Base
     end
   end
 
+  def run_custom_build_steps(hook)
+    return unless if custom_build_steps(hook)
+      puts "Running custom build steps for #{hook}."
+      steps = *custom_build_steps[hook].flatten
+      steps.each do |step|
+        instrument "base.run_custom_build_steps" do
+          puts "Running custom command:\n  `#{command}'"
+          system command
+        end
+      end
+    end
+  end
+
+  def custom_build_steps(hook)
+    steps = _custom_config(:steps)
+    return [] unless steps
+    [steps[hook.to_s]].compact.flatten
+  end
+
+  def custom_process_types
+    processes = _custom_config(:process_types)
+    return {} unless processes
+    processes
+  end
+
+  def setup_custom_build_environment
+    env_variables = _custom_config(:env)
+    return if env_variables.nil?
+
+    env_variables.each do |k,v|
+      ENV[k] = v
+    end
+  end
+
+protected ################################
+
+  def _custom_config(key = nil)
+    return unless File.exists?('build.yml')
+
+    require 'yaml'
+    require 'erb'
+
+    @custom_config ||= YAML.load(
+      ERB.new( File.read('build.yml') )
+      .result
+    )
+
+    return @custom_config if key.nil?
+
+    @custom_config[key.to_s]
+  end
+
 private ##################################
 
   # sets up the environment variables for the build process
   def setup_language_pack_environment
+    setup_custom_build_environment
+    run_custom_build_steps :after_setup_language_pack_environment
   end
 
   def add_to_profiled(string)

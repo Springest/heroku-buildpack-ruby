@@ -3,6 +3,55 @@ Heroku buildpack: Ruby
 
 This is a [Heroku buildpack](http://devcenter.heroku.com/articles/buildpacks) for Ruby, Rack, and Rails apps. It uses [Bundler](http://gembundler.com) for dependency management.
 
+We added some customizations to the buildpack. You can include a
+`build.yml` file in your repository to set custom environment variables
+during build:
+
+```yml
+env:
+  SERVER_ENVIRONMENT: STAGING
+```
+
+Add your own `process types` as well:
+
+```yaml
+env:
+  SERVER_ENVIRONMENT: STAGING
+
+process_types:
+  solr: bundle exec sunspot:solr:start
+```
+
+You can also use this to run custom commands triggered by the following
+hooks during the build process:
+
+```yaml
+env:
+  SERVER_ENVIRONMENT: STAGING
+
+process_types:
+  solr: bundle exec sunspot:solr:start
+
+steps:
+  before_asset_precompile:
+    - ln -s config/s3.yml.example config/s3.yml
+    - git clone https://user:passwd@github.com/your/translations.git locale
+    - cd locale && git pull origin master
+```
+
+The following hooks are provided:
+
+```
+__before_compile
+____after_setup_language_pack_environment
+____before_install_plugins
+____before_assets_precompile  # Rails 3+ only
+____after_assets_precompile   # Rails 3+ only
+__after_compile
+```
+
+Original README below.
+
 Usage
 -----
 

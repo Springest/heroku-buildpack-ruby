@@ -76,7 +76,7 @@ class LanguagePack::Ruby < LanguagePack::Base
       {
         "rake"    => "bundle exec rake",
         "console" => "bundle exec irb"
-      }
+      }.merge(custom_process_types)
     end
   end
 
