@@ -120,6 +120,52 @@ class LanguagePack::Base
     end
   end
 
+  def run_custom_build_steps(hook)
+    return unless if custom_build_steps(hook)
+      puts "Running custom build steps for #{hook}."
+      steps = *custom_build_steps[hook].flatten
+      steps.each do |step|
+        instrument "base.run_custom_build_steps" do
+          puts "Running custom command:\n  `#{command}'"
+          system command
+        end
+      end
+    end
+  end
+
+  def custom_build_steps(hook)
+    steps = _custom_config(:steps)
+    return [] unless steps
+    return [steps[hook.to_s]].compact.flatten
+  end
+
+  def set_custom_build_env
+    env_variables = _custom_config(:env)
+    return if env_variables.nil?
+
+    env_variables.each do |k,v|
+      ENV[k] = v
+    end
+  end
+
+protected ################################
+
+  def _custom_config(key = nil)
+    return unless File.exists?('build.yml')
+
+    require 'yaml'
+    require 'erb'
+
+    @custom_config ||= YAML.load(
+      ERB.new( File.read('build.yml') )
+      .result
+    )
+
+    return @custom_config if key.nil?
+
+    @custom_config[key.to_s]
+  end
+
 private ##################################
 
   # sets up the environment variables for the build process

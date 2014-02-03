@@ -35,7 +35,10 @@ class LanguagePack::Rails3 < LanguagePack::Rails2
 
   def compile
     instrument "rails3.compile" do
-      super
+      run_custom_build_steps :before_compile
+      result = super
+      run_custom_build_steps :after_compile
+      result
     end
   end
 
@@ -58,6 +61,8 @@ private
   # runs the tasks for the Rails 3.1 asset pipeline
   def run_assets_precompile_rake_task
     instrument "rails3.run_assets_precompile_rake_task" do
+      run_custom_build_steps :before_assets_precompile
+
       log("assets_precompile") do
         if File.exists?("public/assets/manifest.yml")
           puts "Detected manifest.yml, assuming assets were compiled locally"
@@ -88,6 +93,8 @@ private
         if precompile.success?
           log "assets_precompile", :status => "success"
           puts "Asset precompilation completed (#{"%.2f" % precompile.time}s)"
+
+          run_custom_build_steps :after_assets_precompile
         else
           log "assets_precompile", :status => "failure"
           error "Precompiling assets failed."
