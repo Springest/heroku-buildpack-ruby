@@ -135,20 +135,16 @@ private
   end
 
   def assets_same_since?(old_assets_version = nil)
-    return false if old_assets_version = nil
+    return false if old_assets_version.nil? || old_assets_version.empty?
     return false if ENV['FORCE_ASSETS_COMPILATION']
 
-    check   = "git diff #{old_assets_version}.. \
+    changed = %x(git diff #{old_assets_version}.. \
       vendor/assets/ \
       app/assets/ \
       config/javascript_translations.yml \
-      config/javascript.yml | wc -l"
+      config/javascript.yml | wc -l).chomp
 
-    topic check
-
-    changed = `#{check}`.chomp
-
-    changed && changed.to_i > 0
+    changed.to_i == 0
   end
 
   # generate a dummy database_url
