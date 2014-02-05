@@ -109,7 +109,7 @@ private
   end
 
   def assets_cache
-    "public/assets/manifest.yml"
+    "public/assets"
   end
 
   def assets_version
