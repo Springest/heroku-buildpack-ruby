@@ -61,8 +61,6 @@ private
 
     return true if load_assets_cache
 
-    puts "Preparing to precompile version #{assets_version}."
-
     instrument "rails3.run_assets_precompile_rake_task" do
       log("assets_precompile") do
         if File.exists?("public/assets/manifest.yml")
@@ -100,7 +98,6 @@ private
           FileUtils.mkdir_p(assets_metadata)
           @metadata.write(assets_version_cache, assets_version, false)
           @metadata.save
-          warn "Wrote #{@metadata.read(assets_version_cache).chomp} to the Assets version cache! (should be #{assets_version})"
 
           run_custom_build_steps :after_assets_precompile
         else
@@ -139,10 +136,12 @@ private
       old_assets_version = @metadata.read(assets_version_cache).chomp if @metadata.exists?(assets_version_cache)
 
       if assets_same_since?(old_assets_version)
+        warn "Assets already cached. Skipping precompilation."
+        warn "Use FORCE_ASSETS_COMPILATION to force compilation of assets."
         cache.load assets_cache
         return true
       else
-        puts "Assets have changed since the last time, continuing to precompilation."
+        warn "Assets have changed since the last time, continuing to precompilation."
         return false
       end
     end

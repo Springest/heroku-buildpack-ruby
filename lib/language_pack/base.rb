@@ -152,7 +152,6 @@ class LanguagePack::Base
     return if env_variables.nil?
 
     topic "Setting up custom environment variables (build.yml)."
-    topic File.read('/tmp/cache/revision').chomp
 
     env_variables.each do |k,v|
       ENV[k] = v
