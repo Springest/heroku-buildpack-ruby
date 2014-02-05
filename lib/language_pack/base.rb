@@ -124,12 +124,12 @@ class LanguagePack::Base
 
   def run_custom_build_steps(hook)
     if custom_build_steps(hook).size > 0
-      puts "Running custom build steps for #{hook}."
+      topic "Running custom build steps for #{hook}."
       steps = *custom_build_steps(hook).flatten
       steps.each do |step|
         instrument "base.run_custom_build_steps" do
-          puts "Running custom command:\n  `#{command}'"
-          system command
+          puts "Running custom command:\n  `#{step}'"
+          system step
         end
       end
     end
