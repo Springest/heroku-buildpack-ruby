@@ -114,7 +114,7 @@ private
   end
 
   def assets_version
-    run_stdout(%q(git rev-parse HEAD).chomp)
+    %x(git rev-parse HEAD).chomp
   end
 
   def assets_version_cache
