@@ -61,6 +61,8 @@ private
 
     return true if load_assets_cache
 
+    puts "Preparing to precompile version #{assets_version}."
+
     instrument "rails3.run_assets_precompile_rake_task" do
       log("assets_precompile") do
         if File.exists?("public/assets/manifest.yml")
@@ -137,7 +139,7 @@ private
         cache.load assets_cache
         return true
       else
-        puts "Assets have changed since latest release, continuing to precompilation."
+        puts "Assets have changed since the last time, continuing to precompilation."
         return false
       end
     end
