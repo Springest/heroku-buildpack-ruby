@@ -138,11 +138,15 @@ private
     return false if old_assets_version = nil
     return false if ENV['FORCE_ASSETS_COMPILATION']
 
-    changed = %x(git diff #{old_assets_version}.. \
+    check   = "git diff #{old_assets_version}.. \
       vendor/assets/ \
       app/assets/ \
       config/javascript_translations.yml \
-      config/javascript.yml | wc -l).chomp
+      config/javascript.yml | wc -l"
+
+    warn check
+
+    changed = `#{check}`.chomp
 
     changed && changed.to_i > 0
   end
