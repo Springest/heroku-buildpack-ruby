@@ -223,6 +223,8 @@ private
     instrument 'ruby.setup_language_pack_environment' do
       setup_ruby_install_env
 
+      setup_custom_build_environment # from build.yml
+
       # TODO when buildpack-env-args rolls out, we can get rid of
       # ||= and the manual setting below
       config_vars = default_config_vars.each do |key, value|
