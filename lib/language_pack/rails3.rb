@@ -136,7 +136,7 @@ private
         cache.load assets_cache
         return true
       else
-        puts "Assets have changed since latest release, continuing to procompilation."
+        puts "Assets have changed since latest release, continuing to precompilation."
         return false
       end
     end
@@ -151,6 +151,9 @@ private
       app/assets/ \
       config/javascript_translations.yml \
       config/javascript.yml | wc -l).chomp
+
+
+  warn changed
 
     changed.to_i == 0
   end
