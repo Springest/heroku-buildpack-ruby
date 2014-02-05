@@ -144,7 +144,7 @@ private
       config/javascript_translations.yml \
       config/javascript.yml | wc -l"
 
-    warn check
+    topic check
 
     changed = `#{check}`.chomp
 
