@@ -97,8 +97,8 @@ private
 
           FileUtils.mkdir_p(assets_metadata)
           @metadata.write(assets_version_cache, assets_version, false)
-          warn "Wrote #{@metadata.read(assets_version_cache).chomp} to the Assets version cache!"
           @metadata.save
+          warn "Wrote #{@metadata.read(assets_version_cache).chomp} to the Assets version cache! (should be #{assets_version})"
 
           run_custom_build_steps :after_assets_precompile
         else
