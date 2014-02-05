@@ -93,7 +93,7 @@ private
           log "assets_precompile", :status => "success"
           puts "Asset precompilation completed (#{"%.2f" % precompile.time}s)"
 
-          cache.store assets_manifest_cache
+          cache.store assets_cache
 
           FileUtils.mkdir_p(assets_metadata)
           @metadata.write(assets_version_cache, assets_version, false)
@@ -108,7 +108,7 @@ private
     end
   end
 
-  def assets_manifest_cache
+  def assets_cache
     "public/assets/manifest.yml"
   end
 
@@ -130,7 +130,7 @@ private
 
       old_assets_version = @metadata.read(assets_version_cache).chomp if @metadata.exists?(assets_version_cache)
 
-      cache.load assets_manifest_cache if assets_same_since?(old_assets_version)
+      cache.load assets_cache if assets_same_since?(old_assets_version)
     end
   end
 
