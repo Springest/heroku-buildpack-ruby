@@ -57,9 +57,11 @@ private
 
   # runs the tasks for the Rails 3.1 asset pipeline
   def run_assets_precompile_rake_task
-    instrument "rails3.run_assets_precompile_rake_task" do
-      run_custom_build_steps :before_assets_precompile
+    run_custom_build_steps :before_assets_precompile
 
+    load_assets_cache
+
+    instrument "rails3.run_assets_precompile_rake_task" do
       log("assets_precompile") do
         if File.exists?("public/assets/manifest.yml")
           puts "Detected manifest.yml, assuming assets were compiled locally"
@@ -91,6 +93,12 @@ private
           log "assets_precompile", :status => "success"
           puts "Asset precompilation completed (#{"%.2f" % precompile.time}s)"
 
+          cache.store assets_manifest_cache
+
+          FileUtils.mkdir_p(assets_metadata)
+          @metadata.write(assets_version_cache, assets_version, false)
+          @metadata.save
+
           run_custom_build_steps :after_assets_precompile
         else
           log "assets_precompile", :status => "failure"
@@ -98,6 +106,45 @@ private
         end
       end
     end
+  end
+
+  def assets_manifest_cache
+    "public/assets/manifest.yml"
+  end
+
+  def assets_version
+    run_stdout(%q(git rev-parse HEAD).chomp)
+  end
+
+  def assets_version_cache
+    "assets_version"
+  end
+
+  def assets_metadata
+    "vendor/heroku"
+  end
+
+  def load_assets_cache
+    instrument "rails3.load_assets_cache" do
+      old_assets_version    = nil
+
+      old_assets_version = @metadata.read(assets_version_cache).chomp if @metadata.exists?(assets_version_cache)
+
+      cache.load assets_manifest_cache if assets_same_since?(old_assets_version)
+    end
+  end
+
+  def assets_same_since?(old_assets_version = nil)
+    return false if old_assets_version = nil
+    return false if ENV['FORCE_ASSETS_COMPILATION']
+
+    changed = %x(git diff #{assets_version}.. \
+      vendor/assets/ \
+      app/assets/ \
+      config/javascript_translations.yml \
+      config/javascript.yml | wc -l).chomp
+
+    changed && changed.to_i > 0
   end
 
   # generate a dummy database_url
