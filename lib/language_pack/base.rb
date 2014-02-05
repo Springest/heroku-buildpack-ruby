@@ -151,6 +151,8 @@ class LanguagePack::Base
     env_variables = _custom_config(:env)
     return if env_variables.nil?
 
+    topic "Setting up custom environment variables (build.yml)."
+
     env_variables.each do |k,v|
       ENV[k] = v
     end

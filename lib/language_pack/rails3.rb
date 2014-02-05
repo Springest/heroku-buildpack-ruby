@@ -116,7 +116,7 @@ private
   end
 
   def assets_version
-    %x(cd #{@build_path} && git rev-parse HEAD).chomp
+    File.read('/tmp/cache/revision').chomp
   end
 
   def assets_version_cache
@@ -154,9 +154,6 @@ private
       app/assets/ \
       config/javascript_translations.yml \
       config/javascript.yml | wc -l).chomp
-
-
-  warn changed
 
     changed.to_i == 0
   end
