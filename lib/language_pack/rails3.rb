@@ -59,7 +59,7 @@ private
   def run_assets_precompile_rake_task
     run_custom_build_steps :before_assets_precompile
 
-    load_assets_cache
+    return true if load_assets_cache
 
     instrument "rails3.run_assets_precompile_rake_task" do
       log("assets_precompile") do
@@ -126,11 +126,19 @@ private
 
   def load_assets_cache
     instrument "rails3.load_assets_cache" do
+      puts "Loading assets cache..."
+
       old_assets_version    = nil
 
       old_assets_version = @metadata.read(assets_version_cache).chomp if @metadata.exists?(assets_version_cache)
 
-      cache.load assets_cache if assets_same_since?(old_assets_version)
+      if assets_same_since?(old_assets_version)
+        cache.load assets_cache
+        return true
+      else
+        puts "Assets have changed since latest release, continuing to procompilation."
+        return false
+      end
     end
   end
 
