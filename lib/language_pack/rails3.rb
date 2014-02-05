@@ -114,7 +114,7 @@ private
   end
 
   def assets_version
-    %x(git rev-parse HEAD).chomp
+    %x(cd #{@build_path} && git rev-parse HEAD).chomp
   end
 
   def assets_version_cache
