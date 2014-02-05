@@ -116,7 +116,10 @@ private
   end
 
   def assets_version
-    File.read('/tmp/cache/revision').chomp
+    %x(tar c vendor/assets/ \
+      app/assets/ \
+      config/javascript_translations.yml \
+      config/javascript.yml | md5sum -b).chomp.split(' ').first
   end
 
   def assets_version_cache
@@ -149,13 +152,7 @@ private
     return false if old_assets_version.nil? || old_assets_version.empty?
     return false if ENV['FORCE_ASSETS_COMPILATION']
 
-    changed = %x(git diff #{old_assets_version}.. \
-      vendor/assets/ \
-      app/assets/ \
-      config/javascript_translations.yml \
-      config/javascript.yml | wc -l).chomp
-
-    changed.to_i == 0
+    old_assets_version == assets_version
   end
 
   # generate a dummy database_url
