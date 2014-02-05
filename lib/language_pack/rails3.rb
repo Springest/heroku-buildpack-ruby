@@ -138,7 +138,7 @@ private
     return false if old_assets_version = nil
     return false if ENV['FORCE_ASSETS_COMPILATION']
 
-    changed = %x(git diff #{assets_version}.. \
+    changed = %x(git diff #{old_assets_version}.. \
       vendor/assets/ \
       app/assets/ \
       config/javascript_translations.yml \
