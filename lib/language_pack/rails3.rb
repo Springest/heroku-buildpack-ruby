@@ -135,12 +135,14 @@ private
 
       old_assets_version = @metadata.read(assets_version_cache).chomp if @metadata.exists?(assets_version_cache)
 
+      cache.load assets_cache
+
       if assets_same_since?(old_assets_version)
         puts "Assets already cached. Skipping precompilation."
         warn "Use FORCE_ASSETS_COMPILATION to force compilation of assets."
-        cache.load assets_cache
         return true
       else
+        %x{rm public/assets/manifest.yml}
         puts "Assets have changed since the last time, continuing to precompilation."
         return false
       end
