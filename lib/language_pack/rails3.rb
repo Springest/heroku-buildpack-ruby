@@ -95,7 +95,7 @@ private
 
           cache.store assets_cache
 
-          FileUtils.mkdir_p(assets_metadata)
+          FileUtils.mkdir_p(heroku_metadata)
           @metadata.write(assets_version_cache, assets_version, false)
           @metadata.save
 
@@ -103,6 +103,64 @@ private
         else
           log "assets_precompile", :status => "failure"
           error "Precompiling assets failed."
+        end
+      end
+    end
+  end
+
+  # runs the tasks for the Rails 3.1 asset pipeline
+  def run_db_migrate_rake_task(rollback = false)
+    run_custom_build_steps :before_database_migrations
+
+    old_schema_version = 0
+    old_schema_version = @metadata.read(schema_version_cache).chomp if @metadata.exists?(schema_version_cache)
+    rollback = true if old_schema_version > schema_version
+    old_schema_version = @metadata.read(rollback_schema_version_cache).chomp if @metadata.exists?(rollback_schema_version_cache) && rollback
+    return true if schema_same_since?(old_schema_version)
+
+    instrument "rails3.run_db_migrate_rake_task" do
+      log("db_migrate") do
+
+        migrate = rake.task("db:migrate")
+        migrate = rake.task("db:rollback") if rollback
+
+        return true unless migrate.is_defined?
+
+        topic("Running database migrations") unless rollback
+        topic("Rolling back database to version #{old_schema_version}")
+
+        if user_env_hash.empty?
+          default_env = {
+            "RAILS_ENV"    => ENV["RAILS_ENV"]    || "production",
+            "DATABASE_URL" => ENV["DATABASE_URL"] || default_database_url
+          }
+        else
+          default_env = {
+            "RAILS_ENV"    => "production",
+            "DATABASE_URL" => default_database_url
+          }
+        end
+
+        default_env['VERSION'] = old_schema_version if rollback
+
+        migrate.invoke(env: default_env.merge(user_env_hash))
+
+        if migrate.success?
+          log "db_migrate", :status => "success"
+          puts "Database migrations completed (#{"%.2f" % migrate.time}s)" unless rollback
+          puts "Database rollback completed (#{"%.2f" % migrate.time}s)" if rollback
+
+          FileUtils.mkdir_p(heroku_metadata)
+          @metadata.write(rollback_schema_version_cache, old_schema_version, false)
+          @metadata.write(schema_version_cache, schema_version, false) unless rollback
+          @metadata.write(schema_version_cache, old_schema_version, false) if rollback
+          @metadata.save
+
+          run_custom_build_steps :after_database_migrations
+        else
+          log "db_migrate", :status => "failure"
+          error "Database migrations failed." unless rollback
+          warn "Database rollback failed." if rollback
         end
       end
     end
@@ -119,11 +177,24 @@ private
       config/javascript.yml | md5sum -b).chomp.split(' ').first
   end
 
+  def schema_version
+    return 0 unless File.exists?('db/schema.rb')
+    %x(cat db/schema.rb | grep ActiveRecord::Schema.define | sed -e 's/[a-z A-Z = \> \: \. \( \)]//g').chomp.to_i
+  end
+
   def assets_version_cache
     "assets_version"
   end
 
-  def assets_metadata
+  def schema_version_cache
+    "schema_version"
+  end
+
+  def rollback_schema_version_cache
+    "rollback_schema_version"
+  end
+
+  def heroku_metadata
     "vendor/heroku"
   end
 
@@ -154,6 +225,13 @@ private
     return false if ENV['FORCE_ASSETS_COMPILATION']
 
     old_assets_version == assets_version
+  end
+
+  def schema_same_since?(old_schema_version = nil)
+    return false if old_schema_version.nil? || old_schema_version.empty?
+    return false if ENV['FORCE_ASSETS_COMPILATION']
+
+    old_schema_version == schema_version
   end
 
   # generate a dummy database_url

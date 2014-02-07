@@ -85,6 +85,7 @@ class LanguagePack::Ruby < LanguagePack::Base
       # check for new app at the beginning of the compile
       new_app?
       Dir.chdir(build_path)
+      run_custom_build_steps :before_compile
       remove_vendor_bundle
       install_ruby
       install_jvm
@@ -96,10 +97,13 @@ class LanguagePack::Ruby < LanguagePack::Base
         create_database_yml unless File.exists?('config/database.yml')
         install_binaries
         run_assets_precompile_rake_task
+        run_db_migrate_rake_task
       end
       super
     end
   end
+
+  def run_db_migrate_rake_task(rollback = false); end
 
 private
 

@@ -75,7 +75,6 @@ class LanguagePack::Base
   # this is called to build the slug
   def compile
     write_release_yaml
-    run_custom_build_steps :before_compile
     instrument 'base.compile' do
       if @warnings.any?
         topic "WARNINGS:"
