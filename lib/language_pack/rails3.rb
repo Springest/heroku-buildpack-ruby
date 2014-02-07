@@ -127,7 +127,7 @@ private
         return true unless migrate.is_defined?
 
         topic("Running database migrations") unless rollback
-        topic("Rolling back database to version #{old_schema_version}")
+        topic("Rolling back database to version #{old_schema_version}") if rollback
 
         if user_env_hash.empty?
           default_env = {
