@@ -113,7 +113,7 @@ private
     run_custom_build_steps :before_database_migrations
 
     old_schema_version = 0
-    old_schema_version = @metadata.read(schema_version_cache).chomp if @metadata.exists?(schema_version_cache)
+    old_schema_version = @metadata.read(schema_version_cache).chomp.to_i if @metadata.exists?(schema_version_cache)
     rollback = true if old_schema_version > schema_version
     old_schema_version = @metadata.read(rollback_schema_version_cache).chomp if @metadata.exists?(rollback_schema_version_cache) && rollback
     return true if schema_same_since?(old_schema_version)
