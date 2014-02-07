@@ -228,8 +228,7 @@ private
   end
 
   def schema_same_since?(old_schema_version = nil)
-    return false if old_schema_version.nil? || old_schema_version.empty?
-    return false if ENV['FORCE_ASSETS_COMPILATION']
+    return false if ENV['FORCE_DATABASE_MIGRATIONS']
 
     old_schema_version == schema_version
   end
