@@ -414,8 +414,8 @@ WARNING
         openssl
         ca-certificates
       )
-      installed_packages = `dpkg --get-selections | grep -v deinstall`.lines.map{|l| l.chomp.split(/\s+/)[0]} rescue []
-      puts installed_packages
+      installed_packages = %x(dpkg --get-selections | grep -v deinstall).lines.map{|l| l.chomp.split(/\s+/)[0]} rescue []
+      puts %x(dpkg --get-selections | grep -v deinstall)
       packages_to_install = (packages - installed_packages).join(', ')
       %x(DEBIAN_FRONTEND='noninteractive' apt-get update && apt-get -yq install #{packages_to_install}) unless packages_to_install.empty?
       puts 'Done installing Apt packages'
