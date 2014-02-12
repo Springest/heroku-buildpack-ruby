@@ -393,23 +393,23 @@ WARNING
   def install_apt_packages
     instrument 'ruby.install_apt_packages' do
       packages = %w(
-        zlib1g-dev
-        libssl-dev
-        libreadline-gplv2-dev
-        libreadline6-dev
-        libyaml-dev
-        libffi-dev
-        libgdbm-dev
-        libtidy-dev
-        libx11-dev
-        libxslt1-dev
-        libxml2-dev
-        libcurl4-gnutls-dev
-        libcurl4-openssl-dev
-        libncurses5-dev
+        zlib1g
+        libssl
+        libreadline-gplv2
+        libreadline6
+        libyaml
+        libffi
+        libgdbm
+        libtidy
+        libx11
+        libxslt1
+        libxml2
+        libcurl4-gnutls
+        libcurl4-openssl
+        libncurses5
         imagemagick
-        libevent-dev
-        libev-dev
+        libevent
+        libev
         openssl
         ca-certificates
       )
