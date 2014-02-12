@@ -90,7 +90,6 @@ class LanguagePack::Ruby < LanguagePack::Base
       install_ruby
       install_jvm
       setup_language_pack_environment
-      install_apt_packages
       setup_profiled
       allow_git do
         install_bundler_in_app
@@ -386,24 +385,6 @@ WARNING
       if ruby_version.jruby?
         ENV['JAVA_OPTS']  = default_java_opts
       end
-    end
-  end
-
-  # install additional apt packages needed by this setup
-  def install_apt_packages
-    instrument 'ruby.install_apt_packages' do
-      topic 'Installing Apt packages'
-      packages = %w(
-        libffi-dev:amd64
-        libtidy-dev:amd64
-        imagemagick
-        libev-dev
-      )
-      installed_packages = %x(dpkg --get-selections | grep -v deinstall).lines.map{|l| l.chomp.split(/\s+/)[0]} rescue []
-      puts `dpkg --get-selections | grep -v deinstall`
-      packages_to_install = (packages - installed_packages).join(', ')
-      %x(DEBIAN_FRONTEND='noninteractive' apt-get update && apt-get -yq install #{packages_to_install}) unless packages_to_install.empty?
-      puts 'Done installing Apt packages'
     end
   end
 
