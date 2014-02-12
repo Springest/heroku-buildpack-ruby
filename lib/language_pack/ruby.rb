@@ -392,6 +392,7 @@ WARNING
   # install additional apt packages needed by this setup
   def install_apt_packages
     instrument 'ruby.install_apt_packages' do
+      topic('Installing Apt packages')
       packages = %w(
         zlib1g
         libssl
@@ -414,8 +415,10 @@ WARNING
         ca-certificates
       )
       installed_packages = %x(dpkg --get-selections | grep -v deinstall).lines.map{|l| l.chomp.split(/\s+/)[0]} rescue []
+      puts installed_packages
       packages_to_install = (packages - installed_packages).join(', ')
       %x(DEBIAN_FRONTEND='noninteractive' apt-get update && apt-get -yq install #{packages_to_install}) unless packages_to_install.empty?
+      puts 'Done installing Apt packages'
     end
   end
 
