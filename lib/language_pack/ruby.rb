@@ -394,25 +394,10 @@ WARNING
     instrument 'ruby.install_apt_packages' do
       topic 'Installing Apt packages'
       packages = %w(
-        zlib1g-dev
-        libssl-dev
-        libreadline-gplv2-dev
-        libreadline6-dev
-        libyaml-dev
-        libffi-dev
-        libgdbm-dev
-        libtidy-dev
-        libx11-dev
-        libxslt1-dev
-        libxml2-dev
-        libcurl4-gnutls-dev
-        libcurl4-openssl-dev
-        libncurses5-dev
+        libffi-dev:amd64
+        libtidy-dev:amd64
         imagemagick
-        libevent-dev
         libev-dev
-        openssl
-        ca-certificates
       )
       installed_packages = %x(dpkg --get-selections | grep -v deinstall).lines.map{|l| l.chomp.split(/\s+/)[0]} rescue []
       puts `dpkg --get-selections | grep -v deinstall`
