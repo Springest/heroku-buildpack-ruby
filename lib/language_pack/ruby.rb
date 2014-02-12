@@ -90,6 +90,7 @@ class LanguagePack::Ruby < LanguagePack::Base
       install_ruby
       install_jvm
       setup_language_pack_environment
+      install_apt_packages
       setup_profiled
       allow_git do
         install_bundler_in_app
@@ -385,6 +386,36 @@ WARNING
       if ruby_version.jruby?
         ENV['JAVA_OPTS']  = default_java_opts
       end
+    end
+  end
+
+  # install additional apt packages needed by this setup
+  def install_apt_packages
+    instrument 'ruby.install_apt_packages' do
+      packages = %w(
+        zlib1g-dev
+        libssl-dev
+        libreadline-gplv2-dev
+        libreadline6-dev
+        libyaml-dev
+        libffi-dev
+        libgdbm-dev
+        libtidy-dev
+        libx11-dev
+        libxslt1-dev
+        libxml2-dev
+        libcurl4-gnutls-dev
+        libcurl4-openssl-dev
+        libncurses5-dev
+        imagemagick
+        libevent-dev
+        libev-dev
+        openssl
+        ca-certificates
+      )
+      installed_packages = %x(dpkg --get-selections | grep -v deinstall).lines.map{|l| l.chomp.split(/\s+/)[0]} rescue []
+      packages_to_install = (packages - installed_packages).join(', ')
+      %x(DEBIAN_FRONTEND='noninteractive' apt-get -yq install #{packages_to_install}) unless packages_to_install.empty?
     end
   end
 
