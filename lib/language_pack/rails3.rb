@@ -131,19 +131,17 @@ private
 
         if user_env_hash.empty?
           default_env = {
-            "RAILS_ENV"    => ENV["RAILS_ENV"]    || "production",
             "DATABASE_URL" => ENV["DATABASE_URL"] || default_database_url
           }
         else
           default_env = {
-            "RAILS_ENV"    => "production",
             "DATABASE_URL" => default_database_url
           }
         end
 
         default_env['VERSION'] = old_schema_version if rollback
 
-        migrate.invoke(env: default_env.merge(user_env_hash))
+        migrate.invoke(env: default_env.merge(user_env_hash).merge("RAILS_ENV" => "migrations"))
 
         if migrate.success?
           log "db_migrate", :status => "success"
