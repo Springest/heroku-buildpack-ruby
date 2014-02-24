@@ -93,11 +93,7 @@ private
           log "assets_precompile", :status => "success"
           puts "Asset precompilation completed (#{"%.2f" % precompile.time}s)"
 
-          cache.store assets_cache
-
-          FileUtils.mkdir_p(heroku_metadata)
-          @metadata.write(assets_version_cache, assets_version, false)
-          @metadata.save
+          write_assets_cache
 
           run_custom_build_steps :after_assets_precompile
         else
@@ -175,6 +171,14 @@ private
       config/javascript.yml | md5sum -b).chomp.split(' ').first
   end
 
+  def write_assets_cache
+    cache.store assets_cache
+
+    FileUtils.mkdir_p(heroku_metadata)
+    @metadata.write(assets_version_cache, assets_version, false)
+    @metadata.save
+  end
+
   def schema_version
     return 0 unless File.exists?('db/schema.rb')
     %x(cat db/schema.rb | grep ActiveRecord::Schema.define | sed -e 's/[a-z A-Z = \> \: \. \( \)]//g').chomp.to_i
@@ -209,6 +213,8 @@ private
       if assets_same_since?(old_assets_version)
         puts "Assets already cached. Skipping precompilation."
         warn "Use FORCE_ASSETS_COMPILATION to force compilation of assets."
+
+        write_assets_cache
         return true
       else
         %x{rm public/assets/manifest.yml}
