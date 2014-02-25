@@ -122,8 +122,12 @@ private
 
         return true unless migrate.is_defined?
 
-        topic("Running database migrations") unless rollback
-        topic("Rolling back database to version #{old_schema_version}") if rollback
+        if ENV['FORCE_DATABASE_MIGRATIONS']
+          topic("Forcing database migrations.")
+        else
+          topic("Running database migrations") unless rollback
+          topic("Rolling back database to version #{old_schema_version}") if rollback
+        end
 
         if user_env_hash.empty?
           default_env = {
@@ -136,6 +140,8 @@ private
         end
 
         default_env['VERSION'] = old_schema_version if rollback
+
+        cache.load migrations_cache if rollback # we need the newer migrations to be able to rollback
 
         migrate.invoke(env: default_env.merge(user_env_hash).merge("RAILS_ENV" => "migrations"))
 
@@ -150,11 +156,13 @@ private
           @metadata.write(schema_version_cache, old_schema_version, false) if rollback
           @metadata.save
 
+          cache.store migrations_cache
+
           run_custom_build_steps :after_database_migrations
         else
           log "db_migrate", :status => "failure"
           error "Database migrations failed." unless rollback
-          warn "Database rollback failed." if rollback
+          error "Database rollback failed." if rollback
         end
       end
     end
@@ -232,9 +240,13 @@ private
   end
 
   def schema_same_since?(old_schema_version = nil)
-    return false if ENV['FORCE_DATABASE_MIGRATIONS'] || old_schema_version == 0
+    return false if old_schema_version == 0
 
     old_schema_version == schema_version
+  end
+
+  def migrations_cache
+    "db/migrate"
   end
 
   # generate a dummy database_url
